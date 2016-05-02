@@ -1,4 +1,3 @@
-import binascii
 from suitcase.crc import crc32
 from suitcase.fields import BitBool
 from suitcase.fields import BitField
@@ -273,7 +272,7 @@ class DriverStation2cRIOPacket(Structure):
         ret.fpga_checksum_2 = 0
         ret.fpga_checksum_3 = 0
         ret.fpga_checksum_4 = 0
-        ret.driver_station_version = 3546356223709687856;
+        ret.driver_station_version = 3546356223709687856;# This was reported by the FRC 2016 DS
 
         payload = ""
         for i in xrange(0,940):
