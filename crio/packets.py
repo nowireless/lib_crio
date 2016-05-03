@@ -12,15 +12,16 @@ from suitcase.fields import UBInt64
 from suitcase.structure import Structure
 
 
-class DriverStation2cRIOPacket(Structure):
+class DriverStation2RobotPacket(Structure):
     packet_index = UBInt16()
     control_byte = BitField(8,
                             reset = BitBool(),
-                            estop = BitBool(),
+                            not_estop = BitBool(),
                             enabled = BitBool(),
                             autonmous = BitBool(),
-                            fms_attacted = BitBool(),
+                            fms_attached = BitBool(),
                             resync = BitBool(),
+                            test = BitBool(),
                             fpga_checksum = BitBool()
                         )
     digital_input = BitField(8,
@@ -151,13 +152,13 @@ class DriverStation2cRIOPacket(Structure):
 
     @staticmethod
     def make_packet(index, team_number):
-        ret = DriverStation2cRIOPacket()
+        ret = DriverStation2RobotPacket()
         ret.packet_index = index
         ret.control_byte.reset = False
-        ret.control_byte.estop = True
+        ret.control_byte.not_estop = True
         ret.control_byte.enabled = False
         ret.control_byte.autonmous = False
-        ret.control_byte.fms_attacted = False
+        ret.control_byte.fms_attached = False
         ret.control_byte.resync = False
         ret.control_byte.fpga_checksum = False
         ret.digital_input.input_8 = False
@@ -272,7 +273,7 @@ class DriverStation2cRIOPacket(Structure):
         ret.fpga_checksum_2 = 0
         ret.fpga_checksum_3 = 0
         ret.fpga_checksum_4 = 0
-        ret.driver_station_version = 3546356223709687856;# This was reported by the FRC 2016 DS
+        ret.driver_station_version = 3546356223709687856# This was reported by the FRC 2016 DS
 
         payload = ""
         for i in xrange(0,940):
@@ -281,14 +282,15 @@ class DriverStation2cRIOPacket(Structure):
         return ret
 
 
-class cRIO2DSPacket(Structure):
+class Robot2DriverStationPacket(Structure):
     control_byte = BitField(8,
                             reset = BitBool(),
-                            estop = BitBool(),
+                            not_estop = BitBool(),
                             enabled = BitBool(),
                             autonmous = BitBool(),
                             fms_attacted = BitBool(),
                             resync = BitBool(),
+                            test = BitBool(),
                             fpga_checksum = BitBool()
                         )
     battery_voltage = UBInt16()
@@ -296,7 +298,7 @@ class cRIO2DSPacket(Structure):
     unknown_1 = UBInt32()
     team_number = UBInt16()
     crio_mac_address = UBInt48()
-    unknown_2a = UBInt64()
+    version = UBInt64()
     unknown_2b = UBInt40()
     unknown_3 = UBInt8()
     packet_index = UBInt16()
@@ -310,12 +312,12 @@ if __name__ == "__main__":
     #print binascii.crc32(data)
     #print binascii.crc32(data[:-4])
     #print data_hex
-    print DriverStation2cRIOPacket.from_data(file.read())
+    print DriverStation2RobotPacket.from_data(file.read())
 
     file = open("packets/packet_2_crio2ds.bin",'rb')
 #    data_hex = binascii.hexlify(file.read())
 #    data = binascii.unhexlify(data_hex)
 #    print data_hex
-    print cRIO2DSPacket.from_data(file.read())
+    print Robot2DriverStationPacket.from_data(file.read())
 
-    print DriverStation2cRIOPacket.from_data(DriverStation2cRIOPacket.make_packet(2, 3081).pack())
+    print DriverStation2RobotPacket.from_data(DriverStation2RobotPacket.make_packet(2, 3081).pack())
