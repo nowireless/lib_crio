@@ -1,12 +1,14 @@
 import scapy.all as s
 import crio
+import binascii
+import crio.packets as p
 from crio.packets import DriverStation2RobotPacket
 from crio.packets import Robot2DriverStationPacket
 
 
 if __name__ == "__main__":
     print "Reading packets"
-    packets = s.rdpcap("/home/nowireless/Desktop/ds1.pcap")
+    packets = s.rdpcap("/home/nowireless/Desktop/disabled_teleop.pcap")
     print "Loaded packets"
     udp_packets = packets[s.UDP][s.IP]
     print "Udp packets found:", len(udp_packets)
@@ -41,11 +43,13 @@ if __name__ == "__main__":
 
     for packet in to_ds:
         c = Robot2DriverStationPacket.from_data(packet.getlayer(s.Raw).load)
-        #print binascii.unhexlify(hex(c.version)[2:])
+        #if not c.control_byte.enabled:
+        #    continue
+        print c.control_byte.enabled, binascii.unhexlify(hex(c.version)[2:]), c.reported_state_str()
         #print c
-        print c.packet_index, c.control_byte
+        #print c.packet_index, c.control_byte
 
-    for packet in to_robot:
-        c = DriverStation2RobotPacket.from_data(packet.getlayer(s.Raw).load)
-        #print binascii.unhexlify(hex(c.version)[2:])
-        print c.packet_index, c.control_byte
+    #for packet in to_robot:
+    #    c = DriverStation2RobotPacket.from_data(packet.getlayer(s.Raw).load)
+    #    print binascii.unhexlify(hex(c.version)[2:])
+    #    print c.packet_index, c.control_byte

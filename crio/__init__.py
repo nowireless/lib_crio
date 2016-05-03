@@ -3,8 +3,15 @@ import logging
 TO_DS_PORT = 1150
 TO_ROBOT_PORT = 1110
 
-LOOP_TIME = 0.03
+LOOP_TIME = 0.1
 
+SOCKET_TIME_OUT = 1
+
+NO_CODE = "No Code?"
+DISABLED = "Disabled?"
+TELEOP = "Teleop?"
+AUTO = "AUTO?"
+TEST = "TEST?"
 
 def team_to_ip(team_number):
     return "10."+str(team_number/100)+"."+str(team_number%100)+".2"

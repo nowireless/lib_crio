@@ -1,3 +1,4 @@
+import crio as c
 from suitcase.crc import crc32
 from suitcase.fields import BitBool
 from suitcase.fields import BitField
@@ -147,11 +148,13 @@ class DriverStation2RobotPacket(Structure):
 
     unknown = Payload(939)
 
-    #crc_checksum = UBInt32()
     crc_checksum = CRCField(UBInt32(), crc32, 0, 1024)
 
     @staticmethod
     def make_packet(index, team_number):
+        """
+        I Don't like this
+        """
         ret = DriverStation2RobotPacket()
         ret.packet_index = index
         ret.control_byte.reset = False
@@ -273,7 +276,9 @@ class DriverStation2RobotPacket(Structure):
         ret.fpga_checksum_2 = 0
         ret.fpga_checksum_3 = 0
         ret.fpga_checksum_4 = 0
-        ret.driver_station_version = 3546356223709687856# This was reported by the FRC 2016 DS
+
+        # This was reported by the FRC 2016 DS in 2014 mode
+        ret.driver_station_version = 3546356223709687856
 
         payload = ""
         for i in xrange(0,940):
@@ -300,10 +305,20 @@ class Robot2DriverStationPacket(Structure):
     crio_mac_address = UBInt48()
     version = UBInt64()
     unknown_2b = UBInt40()
-    unknown_3 = UBInt8()
+    reported_state = UBInt8()
     packet_index = UBInt16()
     unknown_4 = Payload(988)
     crc_checksum = CRCField(UBInt32(), crc32, 0,1024)
+
+    def reported_state_str(self):
+        if self.reported_state == 0:
+            return c.NO_CODE
+        elif self.reported_state == 1:
+            return c.DISABLED
+        elif self.reported_state == 4:
+            return c.TELEOP
+        else:
+            return "Unknown: " + str(self.reported_state)
 
 if __name__ == "__main__":
     file = open("packets/packet_1.bin",'rb')

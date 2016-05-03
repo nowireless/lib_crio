@@ -1,26 +1,12 @@
 import crio
 import logging
-import netifaces
+import network as net
 import time
 import socket
 from packets import DriverStation2RobotPacket
 from packets import Robot2DriverStationPacket
 from threading import Thread
 from threading import RLock
-
-
-def check_interfaces(team):
-    interfaces = netifaces.interfaces()
-    for interface in interfaces:
-        info = netifaces.ifaddresses(interface)
-        print info[netifaces.AF_INET][0]['addr']
-        try:
-            if info[netifaces.AF_INET][0]['addr'] == crio.team_to_ds(team):
-                return True
-        except:
-            pass
-    return False
-
 
 class RobotState:
 
@@ -142,7 +128,7 @@ class DS(Thread):
         self.running = True
         self.team = team
         self.log = crio.make_logger("DS", logging.INFO)
-        if check_interfaces(team):
+        if net.check_interfaces(team):
             self.log.info("Interfaces look ok")
         else:
             self.log.fatal("Network does not seem to configured correctly")
@@ -152,32 +138,50 @@ class DS(Thread):
 
     def run(self):
         send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
         receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        receive.settimeout(crio.SOCKET_TIME_OUT)
 
         self.log.info("Binding to socket")
         receive.bind((crio.team_to_ds(self.team), crio.TO_DS_PORT))
 
         crio_ip = crio.team_to_ip(self.team)
         packet_number = 0
+
+        # Start out with not being connected to the crio
+        alive = False
+
         while self.running:
-            #state = copy.deepcopy(self.state)
+            if not alive:
+                self.log.info("Pinging robot")
+                if net.is_host_alive(crio):
+                    self.log.info("Robot is alive, restarting communication")
+                    alive = True
+                    packet_number = 0 # Reset packet index
+                time.sleep(1)
 
             # Send DS->Robot Packet
-
-            #self.log.info("Sending packet")
             self.state_lock.acquire()
             to_robot_packet = self.state.make_packet(packet_number)
             if self.state.reset:
+                # Do this so only one packet is sent with the reset flag
                 self.state.reset = False
             self.state_lock.release()
             send.sendto(to_robot_packet.pack(), (crio_ip, crio.TO_ROBOT_PORT))
 
             # Wait for Robot Packet
-            data, addr = receive.recvfrom(1024)
+            data = None
+            try:
+                data, addr = receive.recvfrom(1024)
+            except socket.timeout:
+                self.log.warn("Received timeout, robot is not alive")
+                alive = False
+                continue
 
             from_crio_packet = Robot2DriverStationPacket.from_data(data)
-            #print from_crio_packet
             self.log.info("Sent %i | Got %i | %s", packet_number, from_crio_packet.packet_index, str(from_crio_packet.packet_index == packet_number))
+
+            # Increment packet index
             packet_number = (packet_number + 1) % 65535
             time.sleep(crio.LOOP_TIME)
         receive.close()
