@@ -13,6 +13,7 @@ TELEOP = "Teleop?"
 AUTO = "AUTO?"
 TEST = "TEST?"
 
+
 def team_to_ip(team_number):
     return "10."+str(team_number/100)+"."+str(team_number%100)+".2"
 

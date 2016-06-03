@@ -1,6 +1,7 @@
 import os
 import netifaces
 import platform
+import crio
 
 
 class NetworkError(RuntimeError):
@@ -15,7 +16,7 @@ def check_interfaces(team):
             continue
         if len(info[netifaces.AF_INET]) == 0:
             continue
-        if 'addr' not in info[netifaces.AF_INET][0]['addr']:
+        if 'addr' not in info[netifaces.AF_INET][0]:
             continue
         try:
             if info[netifaces.AF_INET][0]['addr'] == crio.team_to_ds(team):
@@ -36,7 +37,8 @@ def ping(host):
     if platform.system() == "Windows":
         raise NetworkError, "Unsupported platform for ping"
     else:
-        return os.system("pint -c1 " + host)
+        print type(host)
+        return os.system("ping -c1 " + host)
 
 
 def is_host_alive(host):

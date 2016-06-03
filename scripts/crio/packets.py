@@ -321,7 +321,7 @@ class Robot2DriverStationPacket(Structure):
             return "Unknown: " + str(self.reported_state)
 
 if __name__ == "__main__":
-    file = open("packets/packet_1.bin",'rb')
+    file = open("./scripts/packets/packet_1.bin",'rb')
     #data_hex = binascii.hexlify(file.read())
     #data = binascii.unhexlify(data_hex)
     #print binascii.crc32(data)
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     #print data_hex
     print DriverStation2RobotPacket.from_data(file.read())
 
-    file = open("packets/packet_2_crio2ds.bin",'rb')
+    file = open("./scripts/packets/packet_2_crio2ds.bin",'rb')
 #    data_hex = binascii.hexlify(file.read())
 #    data = binascii.unhexlify(data_hex)
 #    print data_hex

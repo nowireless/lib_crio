@@ -8,6 +8,7 @@ from packets import Robot2DriverStationPacket
 from threading import Thread
 from threading import RLock
 
+
 class RobotState:
 
     def __init__(self, team):
@@ -69,55 +70,6 @@ class RobotState:
         return pkt
 
 
-@DeprecationWarning
-class SendToRobotThread(Thread):
-    def __init__(self, team_number):
-        super(SendToRobotThread, self).__init__()
-        self.log = crio.make_logger("Send", logging.INFO)
-        self.team_number = team_number
-        self.running = False
-
-    def run(self):
-        self.running = True
-        robot = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        ip = crio.team_to_ip(self.team_number)
-        packet_number = 0
-        while self.running:
-            packet = DriverStation2RobotPacket.make_packet(packet_number, self.team_number)
-            packet.control_byte.reset = False
-            packet.control_byte.enabled = False
-            self.log.info("Sending packet")
-            robot.sendto(packet.pack(), (ip, crio.TO_ROBOT_PORT))
-
-            packet_number = (packet_number + 1) % 65535
-            time.sleep(0.02)#Send packets at 50hz
-
-    def stop(self):
-        self.running = False
-
-
-@DeprecationWarning
-class ReceiveFromRobotThread(Thread):
-    def __init__(self, team_number):
-        super(ReceiveFromRobotThread, self).__init__()
-        self.log = crio.make_logger("Receive", logging.INFO)
-        self.team_number = team_number
-        self.running = False
-
-    def run(self):
-        self.running = True
-        robot = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.log.info("Binding socket")
-        robot.bind(("10.30.81.5", crio.TO_DS_PORT))
-        while self.running:
-            data, addr = robot.recvfrom(1024)
-            packet = Robot2DriverStationPacket.from_data(data)
-            self.log.info("Received packet %i", packet.packet_index)
-
-    def stop(self):
-        self.running = False
-
-
 class DSException(RuntimeError):
     pass
 
@@ -152,12 +104,16 @@ class DS(Thread):
         alive = False
 
         while self.running:
+            print self.state.enabled
             if not alive:
                 self.log.info("Pinging robot")
-                if net.is_host_alive(crio):
+                if net.is_host_alive(crio_ip):
                     self.log.info("Robot is alive, restarting communication")
                     alive = True
                     packet_number = 0 # Reset packet index
+                    self.state_lock.acquire()
+                    self.state.disable()
+                    self.state_lock.release()
                 time.sleep(1)
 
             # Send DS->Robot Packet
@@ -179,7 +135,7 @@ class DS(Thread):
                 continue
 
             from_crio_packet = Robot2DriverStationPacket.from_data(data)
-            self.log.info("Sent %i | Got %i | %s", packet_number, from_crio_packet.packet_index, str(from_crio_packet.packet_index == packet_number))
+            self.log.info("Sent %i | Got %i | %s | Enabled %s", packet_number, from_crio_packet.packet_index, str(from_crio_packet.packet_index == packet_number), from_crio_packet.control_byte.enabled)
 
             # Increment packet index
             packet_number = (packet_number + 1) % 65535
