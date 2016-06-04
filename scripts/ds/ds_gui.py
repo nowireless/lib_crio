@@ -2,6 +2,7 @@ from Tkinter import Frame
 from Tkinter import Button
 from Tkinter import Tk
 from crio.communication import DS
+from joysticks.joysticks import JoystickUpdateThread
 import sys
 
 
@@ -56,7 +57,7 @@ class App(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
 
-        self.ds = DS(3081)
+        self.ds = DS(3081, joystick_thread=JoystickUpdateThread())
         self.ds.start()
         self.QUIT = None
         self.enable = None
@@ -68,6 +69,6 @@ class App(Frame):
 
 if __name__ == "__main__":
     root = Tk(className="cRIO DS")
-    app = App(master= root)
+    app = App(master=root)
     app.mainloop()
     root.destroy()

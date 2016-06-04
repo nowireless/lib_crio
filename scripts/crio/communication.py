@@ -7,6 +7,7 @@ from packets import DriverStation2RobotPacket
 from packets import Robot2DriverStationPacket
 from threading import Thread
 from threading import RLock
+import ds.joysticks.joysticks as joystick
 
 
 class RobotState:
@@ -75,10 +76,11 @@ class DSException(RuntimeError):
 
 
 class DS(Thread):
-    def __init__(self, team):
+    def __init__(self, team, joystick_thread=None):
         super(DS, self).__init__()
         self.running = True
         self.team = team
+        self.joystick_thread = joystick_thread
         self.log = crio.make_logger("DS", logging.INFO)
         if net.check_interfaces(team):
             self.log.info("Interfaces look ok")
@@ -89,6 +91,10 @@ class DS(Thread):
         self.state = RobotState(team)
 
     def run(self):
+        if self.joystick_thread is not None:
+            self.log.info("Starting Joystick Update Thread")
+            self.joystick_thread.start()
+
         send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         receive = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -104,7 +110,6 @@ class DS(Thread):
         alive = False
 
         while self.running:
-            print self.state.enabled
             if not alive:
                 self.log.info("Pinging robot")
                 if net.is_host_alive(crio_ip):
@@ -123,6 +128,17 @@ class DS(Thread):
                 # Do this so only one packet is sent with the reset flag
                 self.state.reset = False
             self.state_lock.release()
+
+            # Populate Joystick Data
+            if self.joystick_thread is not None:
+                self.joystick_thread.lock()
+                if len(self.joystick_thread.joysticks) > 0:
+                    to_robot_packet.joystick_1_axis_1 = self.joystick_thread.joysticks[0].axis[0]
+                    to_robot_packet.joystick_1_axis_2 = self.joystick_thread.joysticks[0].axis[1]
+                    print to_robot_packet.joystick_1_axis_1, to_robot_packet.joystick_1_axis_2
+
+                self.joystick_thread.unlock()
+
             send.sendto(to_robot_packet.pack(), (crio_ip, crio.TO_ROBOT_PORT))
 
             # Wait for Robot Packet
@@ -142,6 +158,11 @@ class DS(Thread):
             time.sleep(crio.LOOP_TIME)
         receive.close()
         send.close()
+
+        if self.joystick_thread is not None:
+            self.log.info("Stopping Joystick Update Thread & joining")
+            self.joystick_thread.stop()
+            self.joystick_thread.join()
 
     def stop(self):
         self.running = False
