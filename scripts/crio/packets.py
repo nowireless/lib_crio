@@ -5,6 +5,7 @@ from suitcase.fields import BitField
 from suitcase.fields import CRCField
 from suitcase.fields import Payload
 from suitcase.fields import UBInt8
+from suitcase.fields import SBInt8
 from suitcase.fields import UBInt16
 from suitcase.fields import UBInt32
 from suitcase.fields import UBInt40
@@ -39,12 +40,12 @@ class DriverStation2RobotPacket(Structure):
     alliance = UBInt8() #ASCII of B or R
     position = UBInt8() #ASCII of 1,2,3
 
-    joystick_1_axis_1 = UBInt8()
-    joystick_1_axis_2 = UBInt8()
-    joystick_1_axis_3 = UBInt8()
-    joystick_1_axis_4 = UBInt8()
-    joystick_1_axis_5 = UBInt8()
-    joystick_1_axis_6 = UBInt8()
+    joystick_1_axis_1 = SBInt8()
+    joystick_1_axis_2 = SBInt8()
+    joystick_1_axis_3 = SBInt8()
+    joystick_1_axis_4 = SBInt8()
+    joystick_1_axis_5 = SBInt8()
+    joystick_1_axis_6 = SBInt8()
     joystick_1_buttons = BitField(16,
                                   button_1 = BitBool(),
                                   button_2 = BitBool(),
@@ -63,12 +64,12 @@ class DriverStation2RobotPacket(Structure):
                                   button_15 = BitBool(),
                                   button_16 = BitBool()
                                 )
-    joystick_2_axis_1 = UBInt8()
-    joystick_2_axis_2 = UBInt8()
-    joystick_2_axis_3 = UBInt8()
-    joystick_2_axis_4 = UBInt8()
-    joystick_2_axis_5 = UBInt8()
-    joystick_2_axis_6 = UBInt8()
+    joystick_2_axis_1 = SBInt8()
+    joystick_2_axis_2 = SBInt8()
+    joystick_2_axis_3 = SBInt8()
+    joystick_2_axis_4 = SBInt8()
+    joystick_2_axis_5 = SBInt8()
+    joystick_2_axis_6 = SBInt8()
     joystick_2_buttons = BitField(16,
                                   button_1 = BitBool(),
                                   button_2 = BitBool(),
@@ -87,12 +88,12 @@ class DriverStation2RobotPacket(Structure):
                                   button_15 = BitBool(),
                                   button_16 = BitBool()
                               )
-    joystick_3_axis_1 = UBInt8()
-    joystick_3_axis_2 = UBInt8()
-    joystick_3_axis_3 = UBInt8()
-    joystick_3_axis_4 = UBInt8()
-    joystick_3_axis_5 = UBInt8()
-    joystick_3_axis_6 = UBInt8()
+    joystick_3_axis_1 = SBInt8()
+    joystick_3_axis_2 = SBInt8()
+    joystick_3_axis_3 = SBInt8()
+    joystick_3_axis_4 = SBInt8()
+    joystick_3_axis_5 = SBInt8()
+    joystick_3_axis_6 = SBInt8()
     joystick_3_buttons = BitField(16,
                                   button_1 = BitBool(),
                                   button_2 = BitBool(),
@@ -111,12 +112,12 @@ class DriverStation2RobotPacket(Structure):
                                   button_15 = BitBool(),
                                   button_16 = BitBool()
                               )
-    joystick_4_axis_1 = UBInt8()
-    joystick_4_axis_2 = UBInt8()
-    joystick_4_axis_3 = UBInt8()
-    joystick_4_axis_4 = UBInt8()
-    joystick_4_axis_5 = UBInt8()
-    joystick_4_axis_6 = UBInt8()
+    joystick_4_axis_1 = SBInt8()
+    joystick_4_axis_2 = SBInt8()
+    joystick_4_axis_3 = SBInt8()
+    joystick_4_axis_4 = SBInt8()
+    joystick_4_axis_5 = SBInt8()
+    joystick_4_axis_6 = SBInt8()
     joystick_4_buttons = BitField(16,
                                   button_1 = BitBool(),
                                   button_2 = BitBool(),
